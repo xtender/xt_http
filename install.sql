@@ -1,5 +1,5 @@
---@@xt_http.jsp;
---@@xt_http.package.sql;
+@@xt_http.jsp;
+@@xt_http.package.sql;
 
 prompt -----------------------------------------------------------------
 prompt Package installed;

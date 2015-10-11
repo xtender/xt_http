@@ -53,7 +53,7 @@ create or replace package XT_HTTP is
  * get_matches
  */
   function get_matches(
-    pStr      varchar2,
+    pUrl      varchar2,
     pPattern  varchar2,
     pTimeout  number default C_DEFAULT_TIMEOUT,
     pGroup    number default 0,
@@ -132,7 +132,7 @@ create or replace package body XT_HTTP is
  * get_matches
  */
   function get_matches(
-    pStr      varchar2,
+    pUrl      varchar2,
     pPattern  varchar2,
     pTimeout  number default C_DEFAULT_TIMEOUT,
     pGroup    number default 0,
@@ -154,7 +154,7 @@ create or replace package body XT_HTTP is
                case when pMULTILINE       >0 then MULTILINE        else 0 end+
                case when pUNICODE_CAS     >0 then UNICODE_CAS      else 0 end+
                case when pUNIX_LINES      >0 then UNIX_LINES       else 0 end;
-      return get_matches_j(pStr,pTimeout,pPattern,pGroup,lFlags,pMaxCount);
+      return get_matches_j(pUrl,pTimeout,pPattern,pGroup,lFlags,pMaxCount);
     end get_matches; 
     
 end XT_HTTP;

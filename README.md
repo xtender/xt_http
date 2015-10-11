@@ -14,19 +14,21 @@ Returns first 4000 chars of page by URL as varchar2.
 Returns first 4000 chars of page by URL as varchar2. 
 
 ####   function get_matches(...)
+Returns matches by PCRE regular expression
+
 Parameters:
   -    pUrl      varchar2                 -- Page URL
-  -    pPattern  varchar2                 -- regular expression
-  -    pTimeout  number default 5 seconds -- timeout in milliseconds,
-  -    pGroup    number default 0         -- subexpression group, 0 - whole matched expression
-  -    pMaxCount number default 0         -- max number of matches
-  -        pCANON_EQ         number default 0,
-  -        pCASE_INSENSITIVE number default 0,
-  -        pCOMMENTS         number default 0,
-  -        pDOTALL           number default 0,
-  -        pMULTILINE        number default 0,
-  -        pUNICODE_CAS      number default 0,
-  -        pUNIX_LINES       number default 0
+  -    pPattern  varchar2                 -- Regular expression
+  -    pTimeout  number default 5 seconds -- Timeout in milliseconds,
+  -    pGroup    number default 0         -- Subexpression group, 0 - whole matched expression
+  -    pMaxCount number default 0         -- Max number of matched groups. 0 - return all.
+  -        pCANON_EQ                         regexp modifier
+  -        pCASE_INSENSITIVE                 regexp modifier
+  -        pCOMMENTS                         regexp modifier
+  -        pDOTALL                           regexp modifier
+  -        pMULTILINE                        regexp modifier
+  -        pUNICODE_CAS                      regexp modifier
+  -        pUNIX_LINES                       regexp modifier
 
 
 ### Installation

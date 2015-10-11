@@ -1,7 +1,8 @@
 create or replace package XT_HTTP is
-
-  -- Author  : Sayan MALAKSHINOV aka xtender
-  -- Mailto  : sayan@orasql.org
+  /**
+   * @Author  Sayan MALAKSHINOV [ @xtender ] {sayan~[dog]~orasql.org}
+   * @version 0.2
+   */
   C_DEFAULT_TIMEOUT constant number := 5000; -- 5 seconds
   
   CANON_EQ          constant number := 128;
@@ -12,14 +13,14 @@ create or replace package XT_HTTP is
 	UNICODE_CAS       constant number := 64;
 	UNIX_LINES        constant number := 1;
    
-
+  /** String is too big for varchar2(4000) */
   E_STRING_TOO_BIG exception;
     pragma EXCEPTION_INIT(E_STRING_TOO_BIG, -932);
-/**
- * Get page as CLOB. 
- * @param pURL       Page URL
- * @param pTimeout   timeout in milliseconds.
- */
+ /**
+  * Get page as CLOB. 
+  * @param pURL       Page URL
+  * @param pTimeout   timeout in milliseconds.
+  */
   function get_page(
               pURL         varchar2, 
               pTimeout     number)
@@ -27,11 +28,11 @@ create or replace package XT_HTTP is
     IS LANGUAGE JAVA
     name 'org.orasql.xt_http.XT_HTTP.getPage(java.lang.String, int) return oracle.sql.CLOB';
 
-/**
- * Get page as varchar2(max=4000 chars)
- * @param pURL       Page URL
- * @param pTimeout   timeout in milliseconds.
- */
+ /**
+  * Get page as varchar2(max=4000 chars)
+  * @param pURL       Page URL
+  * @param pTimeout   timeout in milliseconds.
+  */
   function get_page_as_string(
               pURL         varchar2, 
               pTimeout     number)
@@ -39,13 +40,13 @@ create or replace package XT_HTTP is
     IS LANGUAGE JAVA
     name 'org.orasql.xt_http.XT_HTTP.getPageAsString(java.lang.String, int) return java.lang.String';
     
-/**
- * Split page by regexp delimiter. Returns collection( table of varchar2(4000) )
- * @param pURL          Page URL
- * @param pTimeout      timeout in milliseconds.
- * @param pDelimRegexp  delimiter pattern
- * @return varchar2_table
- */
+ /**
+  * Split page by regexp delimiter. Returns collection( table of varchar2(4000) )
+  * @param pURL          Page URL
+  * @param pTimeout      timeout in milliseconds.
+  * @param pDelimRegexp  delimiter pattern
+  * @return varchar2_table
+  */
   function split (
               pURL         varchar2, 
               pTimeout     number   default C_DEFAULT_TIMEOUT, 
@@ -53,13 +54,13 @@ create or replace package XT_HTTP is
               pMaxCount    number   default 0)
     return varchar2_table;
 
-/**
- * Split page by regexp delimiter. Returns collection( table of CLOB )
- * @param pURL          Page URL
- * @param pTimeout      Timeout in milliseconds.
- * @param pDelimRegexp  Delimiter pattern
- * @return clob_table
- */
+ /**
+  * Split page by regexp delimiter. Returns collection( table of CLOB )
+  * @param pURL          Page URL
+  * @param pTimeout      Timeout in milliseconds.
+  * @param pDelimRegexp  Delimiter pattern
+  * @return clob_table
+  */
   function split_clob(
               pURL         varchar2, 
               pTimeout     number   default C_DEFAULT_TIMEOUT, 
@@ -67,21 +68,21 @@ create or replace package XT_HTTP is
               pMaxCount    number   default 0)
     return clob_table;
 
-/**
- * Returns matches by PCRE regular expression
- * @param pUrl      Page URL
- * @param pPattern  Regular expression
- * @param pTimeout  Timeout in milliseconds.
- * @param pGroup    Subexpression group. 0 - whole matched string
- * @param pMaxCount Max number of matched groups. 0 - return all.
- * @param pCANON_EQ          regexp modifier
- * @param pCASE_INSENSITIVE  regexp modifier
- * @param pCOMMENTS          regexp modifier
- * @param pDOTALL            regexp modifier
- * @param pMULTILINE         regexp modifier
- * @param pUNICODE_CAS       regexp modifier
- * @param pUNIX_LINES        regexp modifier
- */
+ /**
+  * Returns matches by PCRE regular expression
+  * @param pUrl      Page URL
+  * @param pPattern  Regular expression
+  * @param pTimeout  Timeout in milliseconds.
+  * @param pGroup    Subexpression group. 0 - whole matched string
+  * @param pMaxCount Max number of matched groups. 0 - return all.
+  * @param pCANON_EQ          regexp modifier
+  * @param pCASE_INSENSITIVE  regexp modifier
+  * @param pCOMMENTS          regexp modifier
+  * @param pDOTALL            regexp modifier
+  * @param pMULTILINE         regexp modifier
+  * @param pUNICODE_CAS       regexp modifier
+  * @param pUNIX_LINES        regexp modifier
+  */
   function get_matches(
     pUrl      varchar2,
     pPattern  varchar2,

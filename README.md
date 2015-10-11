@@ -41,6 +41,14 @@ dbms_java.grant_permission(
 );
 ```
 
+### DeInstallation
+
+Execute deinstall.sql within SQL*Plus:
+
+```sql
+SQL> @deinstall.sql
+```
+
 [orasql.org][1]
 
 [1]:http://orasql.org

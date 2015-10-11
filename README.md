@@ -3,18 +3,31 @@
 XT_HTTP is a package for oracle database with java stored procedures for convenient work with HTTPS as HTTP.
 
 ### Functions
-####  xt_http.get_page(URL in varchar2) return clob
-Returns page by URL as CLOB;
+####  xt_http.get_page (pURL in varchar2, pTimeout in number) return clob
+Returns page by URL as CLOB.
+pTimeout - timeout in milliseconds;
 
-#### xt_http.get_string(URL in varchar2) return varchar2
+#### xt_http.get_page_as_string (pURL in varchar2, pTimeout in number) return varchar2
 Returns first 4000 chars of page by URL as varchar2. 
 
+#### xt_http.get_page_as_string (pURL in varchar2, pTimeout in number) return varchar2
+Returns first 4000 chars of page by URL as varchar2. 
 
-  - Type some Markdown on the left
-  - See HTML in the right
-  - Magic
+####   function get_matches(...)
+Parameters:
+  -    pUrl      varchar2                 -- Page URL
+  -    pPattern  varchar2                 -- regular expression
+  -    pTimeout  number default 5 seconds -- timeout in milliseconds,
+  -    pGroup    number default 0         -- subexpression group, 0 - whole matched expression
+  -    pMaxCount number default 0         -- max number of matches
+  -        pCANON_EQ         number default 0,
+  -        pCASE_INSENSITIVE number default 0,
+  -        pCOMMENTS         number default 0,
+  -        pDOTALL           number default 0,
+  -        pMULTILINE        number default 0,
+  -        pUNICODE_CAS      number default 0,
+  -        pUNIX_LINES       number default 0
 
-Markdown is a lightweight markup language based on the formatting conventions that people naturally use in email.  As [John Gruber] writes on the [Markdown site][df1]
 
 ### Installation
 

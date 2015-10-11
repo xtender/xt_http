@@ -5,19 +5,37 @@ declare
   s varchar2(8000);
 begin
   --- HTTPS - CLOB:
-  c:=xt_http.get_page('https://google.com');
-  dbms_output.put_line( substr(c,1,100) );
-  --- HTTP - CLOB
-  c:=xt_http.get_page('http://ya.ru');
-  dbms_output.put_line( substr(c,1,100) );
+  c := xt_http.get_page(
+           pURL     => 'https://google.com',
+           pTimeout => 3000/* 3 seconds */
+           );
   
   --- HTTPS - varchar2:
-  s:=xt_http.get_string('https://google.com');
-  dbms_output.put_line(s);
-  --- HTTP - varchar2
-  s:=xt_http.get_string('http://ya.ru');
-  dbms_output.put_line(s);
+  s := xt_http.get_page_as_string(
+           pURL     => 'https://google.com',
+           pTimeout => 3000/* 3 seconds */
+           );
 end;
 /
-select length( xt_http.get_page('https://google.com') ) page_size from dual
+-- Return matched expressions:
+select * 
+from table(
+           xt_http.get_matches(
+                    pUrl     => 'https://google.com',
+                    pPattern => 're..rn',
+                    pTimeout => 3000
+                    )
+           );
+/
+-- Return matched SUBexpressions:
+select * 
+from table(
+           xt_http.get_matches(
+                    pUrl     => 'https://google.com',
+                    pPattern => 're(..)rn',
+                    pTimeout => 3000,
+                    pGroup   => 1 -- subexpression regexp group
+                    )
+           );
+/
 #

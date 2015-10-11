@@ -1,3 +1,4 @@
+@@types.sql;
 @@xt_http.jsp;
 @@xt_http.package.sql;
 

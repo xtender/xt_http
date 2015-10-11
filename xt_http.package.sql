@@ -16,7 +16,9 @@ create or replace package XT_HTTP is
   E_STRING_TOO_BIG exception;
     pragma EXCEPTION_INIT(E_STRING_TOO_BIG, -932);
 /**
- * Get page as CLOB
+ * Get page as CLOB. 
+ * @param pURL       Page URL
+ * @param pTimeout   timeout in milliseconds.
  */
   function get_page(
               pURL         varchar2, 
@@ -27,6 +29,8 @@ create or replace package XT_HTTP is
 
 /**
  * Get page as varchar2(max=4000 chars)
+ * @param pURL       Page URL
+ * @param pTimeout   timeout in milliseconds.
  */
   function get_page_as_string(
               pURL         varchar2, 
@@ -35,13 +39,27 @@ create or replace package XT_HTTP is
     IS LANGUAGE JAVA
     name 'org.orasql.xt_http.XT_HTTP.getPageAsString(java.lang.String, int) return java.lang.String';
     
+/**
+ * Split page by regexp delimiter. Returns collection( table of varchar2(4000) )
+ * @param pURL          Page URL
+ * @param pTimeout      timeout in milliseconds.
+ * @param pDelimRegexp  delimiter pattern
+ * @return varchar2_table
+ */
   function split (
               pURL         varchar2, 
               pTimeout     number   default C_DEFAULT_TIMEOUT, 
               pDelimRegexp varchar2 default '\',
               pMaxCount    number   default 0)
     return varchar2_table;
-    
+
+/**
+ * Split page by regexp delimiter. Returns collection( table of CLOB )
+ * @param pURL          Page URL
+ * @param pTimeout      Timeout in milliseconds.
+ * @param pDelimRegexp  Delimiter pattern
+ * @return clob_table
+ */
   function split_clob(
               pURL         varchar2, 
               pTimeout     number   default C_DEFAULT_TIMEOUT, 
@@ -50,7 +68,19 @@ create or replace package XT_HTTP is
     return clob_table;
 
 /**
- * get_matches
+ * Returns matches by PCRE regular expression
+ * @param pUrl      Page URL
+ * @param pPattern  Regular expression
+ * @param pTimeout  Timeout in milliseconds.
+ * @param pGroup    Subexpression group. 0 - whole matched string
+ * @param pMaxCount Max number of matched groups. 0 - return all.
+ * @param pCANON_EQ          regexp modifier
+ * @param pCASE_INSENSITIVE  regexp modifier
+ * @param pCOMMENTS          regexp modifier
+ * @param pDOTALL            regexp modifier
+ * @param pMULTILINE         regexp modifier
+ * @param pUNICODE_CAS       regexp modifier
+ * @param pUNIX_LINES        regexp modifier
  */
   function get_matches(
     pUrl      varchar2,
@@ -58,7 +88,7 @@ create or replace package XT_HTTP is
     pTimeout  number default C_DEFAULT_TIMEOUT,
     pGroup    number default 0,
     pMaxCount number default 0,
-        pCANON_EQ number default 0,
+        pCANON_EQ         number default 0,
         pCASE_INSENSITIVE number default 0,
         pCOMMENTS         number default 0,
         pDOTALL           number default 0,

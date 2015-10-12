@@ -1,6 +1,7 @@
 create or replace and compile java source named xt_http as
 package org.orasql.xt_http;
 
+import java.io.DataOutputStream;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.regex.*;
@@ -18,13 +19,16 @@ import oracle.sql.*;
 
 public class XT_HTTP {
 
-    private static Connection CONNECTION = getConnection();
+    private static Connection   CONNECTION      = getConnection();
+    private static String       USER_AGENT      = "Mozilla/5.0";
+    private static String       ACCEPT_LANGUAGE = "en-US,en;q=0.5";
+    private static int          lastResponse    = 0;
 
     public static void main(String[] args) {
         // write your code here
         //System.out.println(get("https://community.oracle.com/voting-history.jspa?ideaID=6899&start=0&numResults=1000"));
         try {
-            System.out.println(getPage("http://ya.ru",3000));
+            System.out.println(getPage("http://ya.ru",3000,null,null));
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -83,12 +87,32 @@ public class XT_HTTP {
     }
 
     /** get Page as String */
-    private static String get(String sURL, int timeout) {
+    private static String get(String sURL, int timeout, String httpMethod, String urlParameters) {
         String result="";
         try {
             URL url = new URL(sURL);
             HttpURLConnection con = (HttpURLConnection)url.openConnection();
+
             con.setConnectTimeout(timeout);
+            if(httpMethod != null) {
+                con.setRequestMethod(httpMethod);
+            }else{
+                con.setRequestMethod("GET");
+            }
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("Accept-Language", ACCEPT_LANGUAGE);
+
+            if(httpMethod == "POST" && urlParameters != null) {
+                // Send post request
+                con.setDoOutput(true);
+                DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+                wr.writeBytes(urlParameters);
+                wr.flush();
+                wr.close();
+            }
+
+            lastResponse = con.getResponseCode();
+
             if(con!=null){
                 BufferedReader br =
                         new BufferedReader(
@@ -109,18 +133,22 @@ public class XT_HTTP {
         return result;
     }
 
+    public static int getLastResponse(){
+        return lastResponse;
+    }
+
     /**
      * Function getPage
      * @param sURL Page URL
      * @return String
      */
-    public static CLOB getPage(java.lang.String sURL, int timeout)
+    public static CLOB getPage(java.lang.String sURL, int timeout, java.lang.String httpMethod, java.lang.String urlParameters)
             throws java.sql.SQLException {
-        return strToClob(get(sURL,timeout));
+        return strToClob( get( sURL, timeout, httpMethod, urlParameters ));
     }
 
-    public static java.lang.String getPageAsString(java.lang.String sUrl, int timeout) {
-        return get(sUrl,timeout).substring(0,3999);
+    public static java.lang.String getPageAsString(java.lang.String sUrl, int timeout, java.lang.String httpMethod, java.lang.String urlParameters) {
+        return get(sUrl,timeout,httpMethod,urlParameters).substring(0,3999);
     }
 
     /**
@@ -130,13 +158,15 @@ public class XT_HTTP {
             java.lang.String pUrl,
             java.lang.String pDelim,
             int              pMaxCount,
-            int              timeout)
+            int              timeout,
+            java.lang.String httpMethod,
+            java.lang.String urlParameters)
             throws java.sql.SQLException {
         try{
             if (pDelim==null)  pDelim="";
             java.lang.String[] retArray = new java.lang.String[0];
 
-            java.lang.String   pStr     = get(pUrl,timeout);
+            java.lang.String   pStr     = get(pUrl,timeout,httpMethod,urlParameters);
             if (pStr == null)
                 return strArrayToVarchar2Table(retArray);
             retArray = pStr.split(pDelim,pMaxCount);
@@ -152,14 +182,16 @@ public class XT_HTTP {
     }
 
     public static oracle.sql.ARRAY splitClob(
-            java.lang.String pUrl,
-            java.lang.String pDelim,
-            int pMaxCount,
-            int timeout)
+            java.lang.String    pUrl,
+            java.lang.String    pDelim,
+            int                 pMaxCount,
+            int                 timeout,
+            java.lang.String    httpMethod,
+            java.lang.String    urlParameters)
             throws java.sql.SQLException
     {
         try{
-            java.lang.String pStr = get(pUrl,timeout);
+            java.lang.String pStr = get(pUrl,timeout,httpMethod,urlParameters);
             java.lang.String[] retArray = new java.lang.String[0];
             if (pDelim==null) pDelim="";
             if (pStr!=null)
@@ -179,13 +211,15 @@ public class XT_HTTP {
     public static oracle.sql.ARRAY getMatches(
             java.lang.String sUrl,
             int              timeout,
+            java.lang.String httpMethod,
+            java.lang.String urlParameters,
             java.lang.String pPattern,
             int              pGroup,
             int              pFlags,
             int              pMaxCount)
             throws java.sql.SQLException
     {
-        java.lang.String pStr = get(sUrl,timeout);
+        java.lang.String pStr = get(sUrl,timeout,httpMethod,urlParameters);
         List list = new ArrayList();
         if(pPattern==null) pPattern="";
         if(pStr==null) pStr="";
@@ -210,13 +244,15 @@ public class XT_HTTP {
     public static java.lang.String joinMatches(
             java.lang.String sUrl,
             int              timeout,
+            java.lang.String httpMethod,
+            java.lang.String urlParameters,
             java.lang.String pPattern,
             int              pGroup,
             int              pFlags,
             java.lang.String pDelim)
             throws java.sql.SQLException
     {
-        String pStr = get(sUrl,timeout);
+        String pStr = get(sUrl,timeout,httpMethod,urlParameters);
         if(pPattern==null) pPattern="";
         if(pStr==null) pStr="";
         Pattern p = Pattern.compile(pPattern,pFlags);

@@ -1,9 +1,9 @@
 create or replace and compile java source named xt_http as
 package org.orasql.xt_http;
 
+import java.sql.SQLException;
 import java.util.*;
 import java.util.regex.*;
-import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,204 +14,222 @@ import java.net.HttpURLConnection;
 import java.sql.Connection;
 import oracle.jdbc.driver.*;
 import oracle.sql.*;
- 
+
 
 public class XT_HTTP {
 
-   /** Helpers: */
+    private static Connection CONNECTION = getConnection();
+
+    public static void main(String[] args) {
+        // write your code here
+        //System.out.println(get("https://community.oracle.com/voting-history.jspa?ideaID=6899&start=0&numResults=1000"));
+        try {
+            System.out.println(getPage("http://ya.ru",3000));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /** Helpers: */
     private static CLOB strToClob(String str)
-      throws java.sql.SQLException {
-         OracleDriver driver = new OracleDriver();
-         Connection conn     = driver.defaultConnection();
-         CLOB result         = CLOB.createTemporary(conn, false, CLOB.DURATION_CALL);
-         result.setString(1,str);
-         return result;
+            throws java.sql.SQLException {
+        CLOB result         = CLOB.createTemporary(CONNECTION, false, CLOB.DURATION_CALL);
+        result.setString(1,str);
+        return result;
     }
 
     private static CLOB[] strToClobArray ( java.lang.String str)
-      throws java.sql.SQLException {
-         CLOB[] clobTable = new CLOB[1];
-         clobTable[0].setString(1, str);
-         return clobTable;
+            throws java.sql.SQLException {
+        CLOB[] clobTable = new CLOB[1];
+        clobTable[0].setString(1, str);
+        return clobTable;
     }
-    
+
     private static CLOB[] strArrayToClobArray ( java.lang.String[] strArray )
-      throws java.sql.SQLException {
-         OracleDriver driver = new OracleDriver();
-         Connection conn     = driver.defaultConnection();
-         CLOB[] clobTable = new CLOB[strArray.length];
-         for(int i=0; i < strArray.length; i++) {
-            clobTable[i] = CLOB.createTemporary(conn, false, CLOB.DURATION_CALL);
+            throws java.sql.SQLException {
+        CLOB[] clobTable = new CLOB[strArray.length];
+        for(int i=0; i < strArray.length; i++) {
+            clobTable[i] = CLOB.createTemporary(CONNECTION, false, CLOB.DURATION_CALL);
             clobTable[i].setString(1, strArray[i]);
-         }
-         return clobTable;
+        }
+        return clobTable;
     }
-   
-    private static oracle.sql.ARRAY strArrayToVarchar2Table( java.lang.String[] strArray ) 
-      throws java.sql.SQLException {
-         Connection conn = new OracleDriver().defaultConnection();
-         ArrayDescriptor descriptor = ArrayDescriptor.createDescriptor("VARCHAR2_TABLE", conn );
-         return new oracle.sql.ARRAY(descriptor,conn,strArray);
+
+    private static oracle.sql.ARRAY strArrayToVarchar2Table( java.lang.String[] strArray )
+            throws java.sql.SQLException {
+        ArrayDescriptor descriptor = ArrayDescriptor.createDescriptor("VARCHAR2_TABLE", CONNECTION );
+        return new oracle.sql.ARRAY(descriptor,CONNECTION,strArray);
     }
-   
-    private static oracle.sql.ARRAY strArrayToClobTable( java.lang.String[] strArray ) 
-      throws java.sql.SQLException {
-         Connection conn = new OracleDriver().defaultConnection();
-         ArrayDescriptor descriptor = ArrayDescriptor.createDescriptor("CLOB_TABLE", conn );
-            
-         oracle.sql.ARRAY outArray = new oracle.sql.ARRAY(descriptor,conn,strArrayToClobArray(strArray));
-         return outArray;
+
+    private static oracle.sql.ARRAY strArrayToClobTable( java.lang.String[] strArray )
+            throws java.sql.SQLException {
+        ArrayDescriptor descriptor = ArrayDescriptor.createDescriptor("CLOB_TABLE", CONNECTION );
+
+        oracle.sql.ARRAY outArray = new oracle.sql.ARRAY(descriptor,CONNECTION,strArrayToClobArray(strArray));
+        return outArray;
     }
-    
+
+    /**
+     * Return default oracle connection.
+     * @return default oracle connection
+     */
+    private static Connection getConnection() {
+        try {
+            return new OracleDriver().defaultConnection();
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
     /** get Page as String */
     private static String get(String sURL, int timeout) {
-         String result="";
-         try {
-             URL url = new URL(sURL);
-             HttpURLConnection con = (HttpURLConnection)url.openConnection();
-             con.setConnectTimeout(timeout);
-             if(con!=null){
-                 BufferedReader br =
-                         new BufferedReader(
-                                 new InputStreamReader(con.getInputStream()));
-                 StringBuilder sb = new StringBuilder();
-                 String line;
-                 while ((line = br.readLine()) != null){
-                     sb.append(line);
-                 }
-                 br.close();
-                 result = sb.toString();
-             }
-         } catch (MalformedURLException e) {
-             return e.getMessage();
-         } catch (IOException e) {
-             return e.getMessage();
-         }
-         return result;
+        String result="";
+        try {
+            URL url = new URL(sURL);
+            HttpURLConnection con = (HttpURLConnection)url.openConnection();
+            con.setConnectTimeout(timeout);
+            if(con!=null){
+                BufferedReader br =
+                        new BufferedReader(
+                                new InputStreamReader(con.getInputStream()));
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null){
+                    sb.append(line);
+                }
+                br.close();
+                result = sb.toString();
+            }
+        } catch (MalformedURLException e) {
+            return e.getMessage();
+        } catch (IOException e) {
+            return e.getMessage();
+        }
+        return result;
     }
-    
-   /**
-    * Function getPage
-    * @param String Page URL
-    * @return String
-    */
+
+    /**
+     * Function getPage
+     * @param sURL Page URL
+     * @return String
+     */
     public static CLOB getPage(java.lang.String sURL, int timeout)
-      throws java.sql.SQLException {
+            throws java.sql.SQLException {
         return strToClob(get(sURL,timeout));
     }
-    
+
     public static java.lang.String getPageAsString(java.lang.String sUrl, int timeout) {
         return get(sUrl,timeout).substring(0,3999);
     }
-    
-   /**
-    * Simple regexp split with count - java.lang.String.split
-    */ 
-     public static oracle.sql.ARRAY split(
-                                     java.lang.String pUrl,
-                                     java.lang.String pDelim,
-                                     int              pMaxCount,
-                                     int              timeout)
-       throws java.sql.SQLException {
-         try{
+
+    /**
+     * Simple regexp split with count - java.lang.String.split
+     */
+    public static oracle.sql.ARRAY split(
+            java.lang.String pUrl,
+            java.lang.String pDelim,
+            int              pMaxCount,
+            int              timeout)
+            throws java.sql.SQLException {
+        try{
             if (pDelim==null)  pDelim="";
             java.lang.String[] retArray = new java.lang.String[0];
 
             java.lang.String   pStr     = get(pUrl,timeout);
             if (pStr == null)
-               return strArrayToVarchar2Table(retArray);
+                return strArrayToVarchar2Table(retArray);
             retArray = pStr.split(pDelim,pMaxCount);
 
             //if (retArray.length==1)
             //   return null;
             return strArrayToVarchar2Table(retArray);
-         }catch(java.sql.SQLException e) {
+        }catch(java.sql.SQLException e) {
             java.lang.String[] retArray = new java.lang.String[1];
             retArray[0] = e.getMessage();
             return strArrayToVarchar2Table(retArray);
         }
-     }
+    }
 
-     public static oracle.sql.ARRAY splitClob(
-                                     java.lang.String pUrl,
-                                     java.lang.String pDelim,
-                                     int pMaxCount,
-                                     int timeout)
-     throws java.sql.SQLException 
-     {
-         try{
+    public static oracle.sql.ARRAY splitClob(
+            java.lang.String pUrl,
+            java.lang.String pDelim,
+            int pMaxCount,
+            int timeout)
+            throws java.sql.SQLException
+    {
+        try{
             java.lang.String pStr = get(pUrl,timeout);
             java.lang.String[] retArray = new java.lang.String[0];
             if (pDelim==null) pDelim="";
             if (pStr!=null)
-              retArray = pStr.split(pDelim,pMaxCount);
+                retArray = pStr.split(pDelim,pMaxCount);
 
             return strArrayToClobTable(retArray);
-         } catch(Exception e) {
+        } catch(Exception e) {
             java.lang.String[] retArray = new java.lang.String[0];
             retArray[0] = e.getMessage();
             return strArrayToClobTable(retArray);
         }
-     }
-  
-   /**
-    * Function returns regexp matches with limit
-    */ 
-     public static oracle.sql.ARRAY getMatches(
-         java.lang.String sUrl,
-         int              timeout,
-         java.lang.String pPattern, 
-         int              pGroup, 
-         int              pFlags,
-         int              pMaxCount)
-     throws java.sql.SQLException 
-     {
-            java.lang.String pStr = get(sUrl,timeout);
-            List list = new ArrayList();
-            if(pPattern==null) pPattern="";
-            if(pStr==null) pStr="";
-            Pattern p = Pattern.compile(pPattern,pFlags);
-            Matcher m = p.matcher(pStr);
-            StringBuffer sb = new StringBuffer();
-            int i=0;
-            while(m.find() && (pMaxCount==0 || i++<pMaxCount)){
-                list.add(m.group(pGroup));
-            }
+    }
 
-            Connection conn = new OracleDriver().defaultConnection();         
-            ArrayDescriptor descriptor =
-               ArrayDescriptor.createDescriptor("VARCHAR2_TABLE", conn );
-            oracle.sql.ARRAY outArray = new oracle.sql.ARRAY(descriptor,conn,list.toArray());
-            
-            return outArray;
-     }
-
-   /**
-    * Function returns joined regexp matches
-    */ 
-     public static java.lang.String joinMatches(
+    /**
+     * Function returns regexp matches with limit
+     */
+    public static oracle.sql.ARRAY getMatches(
             java.lang.String sUrl,
             int              timeout,
-            java.lang.String pPattern, 
-            int              pGroup, 
-            int              pFlags, 
-            java.lang.String pDelim)
-     throws java.sql.SQLException 
-     {
-            String pStr = get(sUrl,timeout);
-            if(pPattern==null) pPattern="";
-            if(pStr==null) pStr="";
-            Pattern p = Pattern.compile(pPattern,pFlags);
-            Matcher m = p.matcher(pStr);
-            StringBuffer sb = new StringBuffer();
+            java.lang.String pPattern,
+            int              pGroup,
+            int              pFlags,
+            int              pMaxCount)
+            throws java.sql.SQLException
+    {
+        java.lang.String pStr = get(sUrl,timeout);
+        List list = new ArrayList();
+        if(pPattern==null) pPattern="";
+        if(pStr==null) pStr="";
+        Pattern p = Pattern.compile(pPattern,pFlags);
+        Matcher m = p.matcher(pStr);
+        StringBuffer sb = new StringBuffer();
+        int i=0;
+        while(m.find() && (pMaxCount==0 || i++<pMaxCount)){
+            list.add(m.group(pGroup));
+        }
 
-            boolean b=m.find();
-            while(b){
-                sb.append(m.group(pGroup));
-                b=m.find();
-                if (b) sb.append(pDelim);
-            }
-            return sb.toString();
-     }
+        ArrayDescriptor descriptor =
+                ArrayDescriptor.createDescriptor("VARCHAR2_TABLE", CONNECTION );
+        oracle.sql.ARRAY outArray = new oracle.sql.ARRAY(descriptor,CONNECTION,list.toArray());
+
+        return outArray;
+    }
+
+    /**
+     * Function returns joined regexp matches
+     */
+    public static java.lang.String joinMatches(
+            java.lang.String sUrl,
+            int              timeout,
+            java.lang.String pPattern,
+            int              pGroup,
+            int              pFlags,
+            java.lang.String pDelim)
+            throws java.sql.SQLException
+    {
+        String pStr = get(sUrl,timeout);
+        if(pPattern==null) pPattern="";
+        if(pStr==null) pStr="";
+        Pattern p = Pattern.compile(pPattern,pFlags);
+        Matcher m = p.matcher(pStr);
+        StringBuffer sb = new StringBuffer();
+
+        boolean b=m.find();
+        while(b){
+            sb.append(m.group(pGroup));
+            b=m.find();
+            if (b) sb.append(pDelim);
+        }
+        return sb.toString();
+    }
 }
 /

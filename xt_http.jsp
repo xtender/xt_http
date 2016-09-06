@@ -148,7 +148,14 @@ public class XT_HTTP {
     }
 
     public static java.lang.String getPageAsString(java.lang.String sUrl, int timeout, java.lang.String httpMethod, java.lang.String urlParameters) {
-        return get(sUrl,timeout,httpMethod,urlParameters).substring(0,3999);
+        String result = get(sUrl,timeout,httpMethod,urlParameters);
+        if (result != null) {
+          if (result.length() <= 4000)
+            return result;
+          else
+            return result.substring(0,3999);
+        }
+        return result;
     }
 
     /**
@@ -220,7 +227,7 @@ public class XT_HTTP {
             throws java.sql.SQLException
     {
         java.lang.String pStr = get(sUrl,timeout,httpMethod,urlParameters);
-        List list = new ArrayList();
+        ArrayList list = new ArrayList<java.lang.String>();
         if(pPattern==null) pPattern="";
         if(pStr==null) pStr="";
         Pattern p = Pattern.compile(pPattern,pFlags);
